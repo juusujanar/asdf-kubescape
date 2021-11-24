@@ -2,7 +2,6 @@
 
 set -euo pipefail
 
-# TODO: Ensure this is the correct GitHub homepage where releases can be downloaded for kubescape.
 GH_REPO="https://github.com/armosec/kubescape"
 TOOL_NAME="kubescape"
 TOOL_TEST="kubescape version"
@@ -31,7 +30,6 @@ list_github_tags() {
 }
 
 list_all_versions() {
-  # TODO: Adapt this. By default we simply list the tag names from GitHub releases.
   # Change this function if kubescape has other means of determining installable versions.
   list_github_tags
 }
@@ -41,11 +39,11 @@ download_release() {
   version="$1"
   filename="$2"
 
-  # TODO: Adapt the release URL convention for kubescape
-  url="$GH_REPO/archive/v${version}.tar.gz"
+  url="$GH_REPO/releases/download/v${version}/kubescape-ubuntu-latest"
 
   echo "* Downloading $TOOL_NAME release $version..."
   curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
+  chmod +x "$filename"
 }
 
 install_version() {
@@ -71,4 +69,40 @@ install_version() {
     rm -rf "$install_path"
     fail "An error ocurred while installing $TOOL_NAME $version."
   )
+}
+
+get_platform () {
+    local silent=${1:-}
+    local platform=""
+
+    platform="$(uname | tr '[:upper:]' '[:lower:]')"
+
+    case "$platform" in
+      linux*)
+        local platform=ubuntu
+        ;;
+      darwin*)
+        local platform=macos
+        ;;
+      *)
+        err "Platform '${platform}' not supported!"
+        exit 1
+        ;;
+    esac
+
+    echo -n "$platform"
+}
+
+get_arch () {
+  local arch=""
+
+  case "$(uname -m)" in
+    x86_64|amd64) arch="amd64"; ;;
+    *)
+      err "Arch '$(uname -m)' not supported!"
+      exit 1
+      ;;
+  esac
+
+  echo -n $arch
 }
