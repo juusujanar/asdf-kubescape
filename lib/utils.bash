@@ -35,11 +35,12 @@ list_all_versions() {
 }
 
 download_release() {
-  local version filename url
+  local version filename url platform
   version="$1"
   filename="$2"
+  platform="$(get_platform)"
 
-  url="$GH_REPO/releases/download/v${version}/kubescape-ubuntu-latest"
+  url="$GH_REPO/releases/download/v${version}/kubescape-${platform}-latest"
 
   echo "* Downloading $TOOL_NAME release $version..."
   curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
@@ -70,37 +71,37 @@ install_version() {
   )
 }
 
-get_platform () {
-    local silent=${1:-}
-    local platform=""
+get_platform() {
+  local silent=${1:-}
+  local platform=""
 
-    platform="$(uname | tr '[:upper:]' '[:lower:]')"
+  platform="$(uname | tr '[:upper:]' '[:lower:]')"
 
-    case "$platform" in
-      linux*)
-        local platform=ubuntu
-        ;;
-      darwin*)
-        local platform=macos
-        ;;
-      *)
-        err "Platform '${platform}' not supported!"
-        exit 1
-        ;;
-    esac
+  case "$platform" in
+  linux*)
+    local platform=ubuntu
+    ;;
+  darwin*)
+    local platform=macos
+    ;;
+  *)
+    err "Platform '${platform}' not supported!"
+    exit 1
+    ;;
+  esac
 
-    echo -n "$platform"
+  echo -n "$platform"
 }
 
-get_arch () {
+get_arch() {
   local arch=""
 
   case "$(uname -m)" in
-    x86_64|amd64) arch="amd64"; ;;
-    *)
-      err "Arch '$(uname -m)' not supported!"
-      exit 1
-      ;;
+  x86_64 | amd64) arch="amd64" ;;
+  *)
+    err "Arch '$(uname -m)' not supported!"
+    exit 1
+    ;;
   esac
 
   echo -n $arch
